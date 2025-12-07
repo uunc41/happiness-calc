@@ -158,6 +158,15 @@ const happinesscalc: React.FC = () => {
           <p className={`${currentTheme.text} opacity-80`}> Quick happiness calculation in seconds </p>
         </header>
 
+        <div className="flex justify-center my-4">
+          <div className="bg-blue-200/50 dark:bg-blue-700/50 text-gray-800 dark:text-gray-200 border 
+                          border-gray-400 rounded-xl px-4 py-2 text-sm text-center max-w-xs w-auto mb-3">
+            <p className="text-black/70 font-semibold text-xs">
+              This tool runs entirely in your browser (even though it’s hosted on GitHub Pages), so your information never leaves your device and is completely secure. - Verified by AI
+            </p>
+          </div>
+        </div>
+
         <div className="flex justify-center gap-2 mb-6">
           <button
             onClick={() => setTheme('light')}
