@@ -129,7 +129,7 @@ const happinesscalc: React.FC = () => {
   const currentTheme = themes[theme];
 
   return (
-    <div className={`min-h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto`}>
+    <div className={`min-h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center pt-8 md:pt-16 overflow-x-hidden overflow-y-auto`}>
       <div className="fixed inset-0 overflow-hidden pointer-events-none -webkit-overflow-scrolling-touch">
         {[...Array(15)].map((_, i) => (
           <div
