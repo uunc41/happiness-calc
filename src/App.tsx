@@ -17,7 +17,7 @@ const happinesscalc: React.FC = () => {
   const analyzeHappiness = (): HappinessResult => {
     let score = 50;
     const lowerText = happinessText.toLowerCase();
-    
+
     const positivePatterns = [
       { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|extremely\s+)?(happy|great|amazing|wonderful|fantastic|awesome|excellent|excited|joyful|blessed|good|ecstatic|thrilled)\b/gi, weight: 29 },
       { regex: /\b(love|loving|adore|enjoy|delighted)\b/gi, weight: 20 },
@@ -129,8 +129,8 @@ const happinesscalc: React.FC = () => {
   const currentTheme = themes[theme];
 
   return (
-    <div className={`h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center`}>
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+    <div className={`min-h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto`}>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -webkit-overflow-scrolling-touch">
         {[...Array(15)].map((_, i) => (
           <div
             key={i}
@@ -187,7 +187,7 @@ const happinesscalc: React.FC = () => {
             <textarea
               value={happinessText}
               onChange={(e) => setHappinessText(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleAnalyze();
