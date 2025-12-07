@@ -19,7 +19,7 @@ const happinesscalc: React.FC = () => {
     const lowerText = happinessText.toLowerCase();
     
     const positivePatterns = [
-      { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|extremely\s+)?(happy|great|amazing|wonderful|fantastic|awesome|excellent|excited|joyful|blessed|ecstatic|thrilled)\b/gi, weight: 29 },
+      { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|extremely\s+)?(happy|great|amazing|wonderful|fantastic|awesome|excellent|excited|joyful|blessed|good|ecstatic|thrilled)\b/gi, weight: 29 },
       { regex: /\b(love|loving|adore|enjoy|delighted)\b/gi, weight: 20 },
       { regex: /\b(positive|optimistic|hopeful|confident|proud)\b/gi, weight: 17 },
       { regex: /\b(calm|relaxed|peaceful|zen)\b/gi, weight: 16 },
