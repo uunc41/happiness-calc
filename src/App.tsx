@@ -1,24 +1,49 @@
-import React, { useState } from 'react';
-import { Sparkles, Moon, Sun, Zap, TrendingUp, ClipboardCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, Moon, Sun, TrendingUp, Zap, ClipboardCheck} from 'lucide-react';
 
 interface HappinessResult {
   score: number;
-  label: string;
   color: string;
+  label: string;
   feedback: string;
 }
 
-const happinesscalc: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'neon'>('dark');
-  const [happinessText, setHappinessText] = useState('');
-  const [currentHappiness, setCurrentHappiness] = useState<HappinessResult | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+const HappinessCalc = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [text, setText] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [happiness, setHappiness] = useState<HappinessResult | null>(null);
 
   const analyzeHappiness = (): HappinessResult => {
     let score = 50;
-    const lowerText = happinessText.toLowerCase();
+    const lowerText = text.toLowerCase();
 
-    const positivePatterns = [
+    const positiveWords = ['happy', 'good', 'fun', 'amazing', 'great', 'excited', 'thrilled', 'love', 'enjoy', 'positive', 'optimistic', 'hopeful', 'proud', 'confident'];
+    const negativeWords = ['sad', 'depressed', 'unhappy', 'awful', 'bad', 'terrible', 'tired', 'anxious', 'worried', 'nervous', 'overwheled', 'angry', 'mad', 'frustrated'];
+
+    positiveWords.forEach(word => {
+      const negationRegex = new RegExp(`\\b(not|never|no|can't|cannot|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\\s+(really\\s+|super\\s+|very\\s+|pretty\\s+|so\\s+|extremely\\s+)?(${word})\\b`, 'gi');
+      const matches = lowerText.match(negationRegex);
+      if (matches) {
+        matches.forEach(match => {
+          let multi = /really|super|pretty|very|so|extremely|incredibly|extra/.test(match) ? 1.5 : 1;
+          score -= 25 * multi; 
+        });
+      }
+    });
+
+    negativeWords.forEach(word => {
+      const negationRegex = new RegExp (`\\b(not|never|no|can't|cannot|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\\s+(really\\s+|super\\s+|very\\s+|pretty\\s+|so\\s+|extremely\\s+)?(${word})\\b`, 'gi');
+      const matches = lowerText.match(negationRegex);
+      if (matches) {
+        matches.forEach(match => {
+          let multi = /really|super|pretty|very|so|extremely|incredibly|extra/.test(match) ? 1.5 : 1;
+          score += 25 * multi;
+        });
+      }
+    });
+
+    const positiveRegex = [
       { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|extremely\s+)?(happy|great|amazing|wonderful|fantastic|awesome|excellent|excited|joyful|blessed|good|ecstatic|thrilled)\b/gi, weight: 29 },
       { regex: /\b(love|loving|adore|enjoy|delighted)\b/gi, weight: 20 },
       { regex: /\b(positive|optimistic|hopeful|confident|proud)\b/gi, weight: 17 },
@@ -27,8 +52,8 @@ const happinesscalc: React.FC = () => {
       { regex: /😊|😄|😃|🙂|😁|🥰|😍|🤗|✨|⭐|🌟|💪|🎉|🔥|❤️|💖|😎/g, weight: 14 },
     ];
 
-    const negativePatterns = [
-      { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|so\s+|extremely\s+)?(sad|depressed|down|low|blue|miserable|awful|bad|terrible|horrible|devastated)\b/gi, weight: 29 },
+    const negativeRegex = [
+      { regex: /\b(i'?m\s+)?(feeling\s+)?(really\s+|super\s+|very\s+|pretty\s+|so\s+|extremely\s+)?(sad|depressed|down|low|blue|miserable|awful|bad|terrible|horrible|unhappy|devastated)\b/gi, weight: 29 },
       { regex: /\b(tired|exhausted|drained|burnt\s+out)\b/gi, weight: 20 },
       { regex: /\b(stressed|anxious|worried|nervous|overwhelmed|panicked)\b/gi, weight: 17 },
       { regex: /\b(angry|mad|furious|frustrated)\b/gi, weight: 20 },
@@ -38,28 +63,38 @@ const happinesscalc: React.FC = () => {
       { regex: /😢|😭|😔|😞|😣|😩|😤|😠|😡|💔|😰|😱/g, weight: 14 },
     ];
 
-    positivePatterns.forEach(({ regex, weight }) => {
+    positiveRegex.forEach(({ regex, weight }) => {
       const matches = lowerText.match(regex);
       if (matches) {
         matches.forEach(match => {
-          let multiplier = /really|super|pretty|very|extremely|incredibly/.test(match) ? 1.5 : 1;
-          score += weight * multiplier;
+          const matchIndex = lowerText.indexOf(match.toLowerCase());
+          const beforeMatch = lowerText.substring(Math.max(0, matchIndex - 50), matchIndex);
+          if (/\b(not|never|no|can't|cannot|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\s+(really\s+|super\s+|very\s+|pretty\s+|so\s+|extremely\s+)?$/.test(beforeMatch)) {
+            return; 
+          }
+          let multi = /really|super|pretty|very|so|extremely|incredibly|extra/.test(match) ? 1.5 : 1;
+          score += weight * multi;
         });
       }
     });
 
-    negativePatterns.forEach(({ regex, weight }) => {
+    negativeRegex.forEach(({ regex, weight }) => {
       const matches = lowerText.match(regex);
       if (matches) {
         matches.forEach(match => {
-          let multiplier = /really|super|pretty|very|so|extremely|incredibly/.test(match) ? 1.5 : 1;
-          score -= weight * multiplier;
+          const matchIndex = lowerText.indexOf(match.toLowerCase());
+          const beforeMatch = lowerText.substring(Math.max(0, matchIndex - 50), matchIndex);
+          if (/\b(not|never|no|can't|cannot|won't|don't|doesn't|isn't|aren't|wasn't|weren't)\s+(really\s+|super\s+|very\s+|pretty\s+|so\s+|extremely\s+)?$/.test(beforeMatch)) {
+            return;
+          }
+          let multi = /really|super|pretty|very|so|extremely|incredibly|extra/.test(match) ? 1.5 : 1;
+          score -= weight * multi;
         });
       }
     });
 
     score += Math.random() * 10 - 5;
-    score = Math.max(0, Math.min(100, score));
+    score = Math.max(0, Math.min(100, score))
 
     let label: string, color: string;
     if (score >= 80) {
@@ -82,11 +117,11 @@ const happinesscalc: React.FC = () => {
       color = '#dc2626';
     }
 
-    const feedback = generateFeedback(lowerText, score);
-    return { score: Math.round(score), label, color, feedback };
+    const feedback = generateFeedback(score)
+    return { score: Math.round(score), label, color, feedback};
   };
 
-  const generateFeedback = (text: string, score: number): string => {
+  const generateFeedback = (score: number): string => {
     if (score >= 80) return "You're very happy, keep going!";
     if (score >= 65) return "You're happy today, good job!";
     if (score >= 50) return "You're decently happy right now.";
@@ -95,30 +130,26 @@ const happinesscalc: React.FC = () => {
     return "Thanks for using HappinessCalc!";
   };
 
+
   const handleAnalyze = () => {
-    if (!happinessText.trim()) return;
-    setIsAnalyzing(true);
+    if (!text.trim()) return;
+    setAnalyzing(true);
     setTimeout(() => {
       const result = analyzeHappiness();
-      setCurrentHappiness(result);
-      setIsAnalyzing(false);
+      setHappiness(result);
+      setAnalyzing(false);
     }, 1200);
   };
+
 
   const themes = {
     light: {
       bg: 'bg-gradient-to-br from-blue-50 to-purple-50',
-      card: 'bg-white/80 backdrop-blur-sm',
+      card: 'bg-white/80 backdrop-blue-sm',
       text: 'text-gray-800',
       border: 'border-gray-200',
     },
     dark: {
-      bg: 'bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900',
-      card: 'bg-gray-800/50 backdrop-blur-lg',
-      text: 'text-white',
-      border: 'border-gray-700',
-    },
-    neon: {
       bg: 'bg-gradient-to-br from-black via-purple-950 to-black',
       card: 'bg-black/50 backdrop-blur-lg border-2 border-cyan-500/30',
       text: 'text-cyan-100',
@@ -129,7 +160,8 @@ const happinesscalc: React.FC = () => {
   const currentTheme = themes[theme];
 
   return (
-    <div className={`min-h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center pt-8 md:pt-16 overflow-x-hidden overflow-y-auto`}>
+    <div className={`min-h-screen ${currentTheme.bg} transition-all duration-500 px-4 md:px-8 flex flex-col items-center justify-center 
+                    pt-8 md:pt-16 overflow-x-hidden overflow-y-auto`}>
       <div className="fixed inset-0 overflow-hidden pointer-events-none -webkit-overflow-scrolling-touch">
         {[...Array(15)].map((_, i) => (
           <div
@@ -139,87 +171,82 @@ const happinesscalc: React.FC = () => {
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${10 + Math.random() * 10}s`,
+              animationDuration: `${10 + Math.random() * 10}s`
             }}
           >
             <Sparkles className="text-purple-500/20" size={16} />
           </div>
         ))}
       </div>
-
       <div className="max-w-2xl w-full relative z-10">
-        <header className="text-center mb-8 animate-fade-in">
+        <header className="text-center mb-7 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Zap className={`${theme === 'neon' ? 'text-cyan-400' : 'text-purple-500'} animate-pulse`} size={36} />
+            <Zap className={`${theme === 'dark' ? 'text-cyan-400' : 'text-purple-500'} animate-pulse`} size={36} />
             <h1 className={`text-4xl md:text-5xl font-bold ${currentTheme.text} tracking-tight`}>
-              Happiness<span className={theme === 'neon' ? 'text-cyan-400' : 'text-purple-600'}>Calc</span>
+              Happiness<span className={theme === 'dark' ? 'text-cyan-400' : 'text-purple-600'}>Calc</span>
             </h1>
           </div>
           <p className={`${currentTheme.text} opacity-80`}> Quick happiness calculation in seconds </p>
         </header>
 
-        <div className="flex justify-center my-4">
-          <div className="bg-blue-200/50 dark:bg-blue-700/50 text-gray-800 dark:text-gray-200 border 
-                          border-gray-400 rounded-xl px-4 py-2 text-sm text-center max-w-xs w-auto mb-3">
+        <div className="flex justify-center my-3">
+          <div className="bg-blue-200/50 dark:bg-blue-700/50 text-gray-800 dark:text-gray-200 border
+                          border-gray-400 rounded-xl px-4 py-2 text-sm text-center max-w-xs w-auto mb-3"
+          >
             <p className="text-black/70 font-semibold text-xs">
               This tool runs entirely in your browser (even though it’s hosted on GitHub Pages), so your information never leaves your device and is completely secure. - Verified by AI
             </p>
           </div>
         </div>
-
         <div className="flex justify-center gap-2 mb-6">
           <button
             onClick={() => setTheme('light')}
-            className={`p-2 rounded-lg transition-all ${theme === 'light' ? 'bg-blue-500 text-white' : 'bg-white/10 text-black/60 border'}`}
+            className={`p-2 rounded-lg transition-all shadow-2xl hover:-translate-y-1 duration-300 ${theme === 'light' ? 'bg-blue-500 text-white border border-black/80' : 'bg-white/10 text-black/60 border border-white/90'}`}
           >
-            <Sun size={18} />
+            <Sun size={20} />
           </button>
           <button
             onClick={() => setTheme('dark')}
-            className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'bg-purple-500 text-white' : 'bg-white/10 text-black/60 border'}`}
+            className={`p-2 rounded-lg transition-all shadow-2xl hover:-translate-y-1 duration-300 ${theme === 'dark' ? 'bg-cyan-500 text-black border border-white/90' : 'bg-white/10 text-black/60 border border-black/80'}`}
           >
-            <Moon size={18} />
-          </button>
-          <button
-            onClick={() => setTheme('neon')}
-            className={`p-2 rounded-lg transition-all ${theme === 'neon' ? 'bg-cyan-500 text-black' : 'bg-white/10 text-black/60 border'}`}
-          >
-            <Zap size={18} />
+            <Moon size={20} />
           </button>
         </div>
-
-        <div className={`${currentTheme.card} rounded-3xl p-8 shadow-2xl border ${currentTheme.border} animate-slide-up`}>
+        <div className={`${currentTheme.card} rounded-3xl p-8 shadow-2xl mb-12 border ${currentTheme.border} animate-slide-up`}>
           <div className="mb-6">
             <label className={`block ${currentTheme.text} mb-3 font-medium text-lg`}>
               How are you feeling?
             </label>
-            <textarea
-              value={happinessText}
-              onChange={(e) => setHappinessText(e.target.value)}
+            <textarea 
+              value={text}
+              onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleAnalyze();
                 }
               }}
-              className={`w-full ${currentTheme.card} ${currentTheme.text} ${currentTheme.border} border rounded-2xl p-4 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all resize-none text-lg`}
-              rows={4}
-              placeholder="I'm feeling..."
+              className={`w-full ${currentTheme.card} ${currentTheme.text} ${currentTheme.border} border rounded-2xl p-4 focus:ring-2
+                        focus:ring-purple-500 focus:outline-none transition-all resize-none text-lg`}
+                        rows={4}
+                        placeholder="I'm feeling..."
             />
           </div>
 
           <button
             onClick={handleAnalyze}
-            disabled={isAnalyzing || !happinessText.trim()}
-            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all transform hover:scale-105 active:scale-90 transition-all duration-100 shadow-lg mb-6 ${
-              isAnalyzing || !happinessText.trim()
-                ? 'bg-gray-500 cursor-not-allowed'
-                : theme === 'neon'
-                ? 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
-                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
-            }`}
+            disabled={analyzing || !text.trim ()}
+            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all transform 
+                      hover:scale-105 active:scale-90  duration-100 shadow-lg mb-6 ${
+                        analyzing || !text.trim()
+                          ? 'bg-gray-500'
+                          : theme === 'dark'
+                          ? 'bg-gradient-to-br from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
+                          : 'bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                      }`} 
+            
           >
-            {isAnalyzing ? (
+            {analyzing ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
                 Analyzing...
@@ -229,43 +256,44 @@ const happinesscalc: React.FC = () => {
                 <TrendingUp size={20} /> Analyze Happiness
               </span>
             )}
+          
           </button>
 
-          {currentHappiness && (
+          {happiness && (
             <div
               className={`${currentTheme.border} border rounded-2xl p-6 backdrop-blur-sm animate-slide-up`}
-              style={{ boxShadow: theme === 'neon' ? `0 0 30px ${currentHappiness.color}30` : undefined }}
+              style={{ boxShadow: theme === 'dark' ? `0 0 30px ${happiness.color}30` : undefined }}
             >
               <div className="flex justify-center mb-4">
                 <div
                   className="relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500"
                   style={{
-                    background: `radial-gradient(circle, ${currentHappiness.color}30, transparent)`,
-                    boxShadow: `0 0 40px ${currentHappiness.color}40`,
+                    background: `radial-gradient(circle, ${happiness.color}30, transparent)`,
+                    boxShadow: `0 0 40px ${happiness.color}40`,
                   }}
                 >
                   <div className="text-center">
                     <div className="text-5xl mb-1 animate-bounce">
-                      <ClipboardCheck size={48} color={currentHappiness.color} />
+                      <ClipboardCheck size={48} color={happiness.color} />
                     </div>
-                    <div className={`text-2xl font-bold ${currentTheme.text}`}>{currentHappiness.score}</div>
+                    <div className={`text-2xl font-bold ${currentTheme.text}`}>{happiness.score}</div>
                   </div>
                 </div>
               </div>
               <div className="text-center mb-4">
-                <h3 className={`text-2xl font-bold ${currentTheme.text}`} style={{ color: currentHappiness.color }}>
-                  {currentHappiness.label}
+                <h3 className={`text-2xl font-bold ${currentTheme.text}`} style={{ color: happiness.color }}>
+                  {happiness.label}
                 </h3>
               </div>
-              <p className={`${currentTheme.text} opacity-90 text-center leading-relaxed`}>{currentHappiness.feedback}</p>
+              <p className={`${currentTheme.text} opacity-90 text-center leading-relaxed`}>{happiness.feedback}</p>
               <div className="mt-4">
                 <div className="h-2 bg-gray-700/30 rounded-full overflow-hidden">
                   <div
                     className="h-full transition-all duration-1000 ease-out rounded-full"
                     style={{
-                      width: `${currentHappiness.score}%`,
-                      backgroundColor: currentHappiness.color,
-                      boxShadow: `0 0 15px ${currentHappiness.color}`,
+                      width: `${happiness.score}%`,
+                      backgroundColor: happiness.color,
+                      boxShadow: `0 0 15px ${happiness.color}`,
                     }}
                   />
                 </div>
@@ -274,7 +302,6 @@ const happinesscalc: React.FC = () => {
           )}
         </div>
       </div>
-
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -290,10 +317,10 @@ const happinesscalc: React.FC = () => {
         }
         .animate-float { animation: float linear infinite; }
         .animate-fade-in { animation: fade-in 0.8s ease-out; }
-        .animate-slide-up { animation: slide-up 0.6s ease-out; }
-      `}</style>
+        .animate-slide-up { animation: slide-up 0.6s ease-out}
+      `}
+      </style>
     </div>
   );
-};
-
-export default happinesscalc;
+}
+export default HappinessCalc;
